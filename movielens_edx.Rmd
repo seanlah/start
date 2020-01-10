@@ -240,10 +240,6 @@ predicted_ratings <- mu + mv_test %>%
 
 # calculate rmse after modelling movie effect
 model_2 <- RMSE(pred_ratings, mv_test$rating)
-rmse_results <- bind_rows(rmse_results,
-                          data_frame(method="Movie effect model",  
-                                     RMSE = model_2))
-rmse_results %>% knitr::kable()
 ```
 
 
@@ -303,12 +299,11 @@ Regularization is a method to limit the variability by penalizing large estimate
 In previous sections, we computed standard error and constructed confidence intervals to account for different levels of uncertainty. However, when making predictions, we need one number, one prediction, not an interval. For this, we introduce the concept of regularization.
 
 
-### Fourth Model: Movie + User Effect Model
+### Fourth Model: Regularized Movie + User Effect Model
 
-After running the movie and user effect in separate model:
+Regularizing movie and user effect in one model:
 
-$$\frac{1}{N} \sum_{u,i} \left(y_{u,i} - \mu - b_i - b_u \right)^2 + 
-\lambda \left(\sum_{i} b_i^2 + \sum_{u} b_u^2\right)$$
+$$\frac{1}{N} \sum_{u,i} \left(y_{u,i} - \mu - b_i - b_u \right)^2 + \lambda \left(\sum_{i} b_i^2 + \sum_{u} b_u^2\right)$$
 
 Combine both effect in a single model
 ```{r lambda, echo = FALSE, message=FALSE, warning=FALSE}
@@ -339,28 +334,30 @@ rmses <- sapply(lambdas, function(l){
 qplot(lambdas, rmses) 
 ```
 
-Calculating the value of lambda which produces the minimum value of RMSE:
+Selecting the lambda value which produces the minimum value of RMSE:
 
-``` {r optimal-lambda, echo = FALSE, message = FALSE, warning = FALSE}
+``` {r optimal-lambda, echo = TRUE, message = FALSE, warning = FALSE}
 lambda <- lambdas[which.min(rmses)]
 lambda
-```
 
+# RMSE of regularized movie + user effect model
+rmse_4 <- min(rmse_f)
+```
 
 # Results
 
 By running the models step by step, the RMSE gradually decreases from the first naive model after computing the biases into the model.
 
-By running the models step by step, the RMSE gradually decreases from the model to model. From the basic na?ve model, the computed RMSE (RMSE = 1.0612018) does not seems satisfying as this model produced an error more than a star to the prediction model. Then, the second model (movie effect model) shown a significant drop in RMSE (RMSE = 0.9439087) from the first model (naive model) by computing the movie effect bias into the model. Again, significant reduction of RMSE (RMSE = 0.8653488) seen from the third model, with the computation of movie and user effect combination. To prevent model from producing larger estimates with small sample size, the method of regularization is then used to further reduce the RMSE. The fourth model (regularized movie + user effect) produced RMSE (0.8648177).
+By running the models step by step, the RMSE gradually decreases from the model to model. From the basic na?ve model, the computed RMSE **(RMSE = 1.0612018)** does not seems satisfying as this model produced an error more than a star to the prediction model. Then, the second model (movie effect model) shown a significant drop in RMSE **(RMSE = 0.9439087)** from the first model (naive model) by computing the movie effect bias into the model. Again, significant reduction of RMSE **(RMSE = 0.8653488)** seen from the third model, with the computation of movie and user effect combination. To prevent model from producing larger estimates with small sample size, the method of regularization is then used to further reduce the RMSE. The fourth model (regularized movie + user effect) produced **(RMSE = 0.8648177)**.
 
 The results can be summarized into a table below:
 
-``` {r regularization, eval = FALSE, message=FALSE, warning=FALSE}
-rmse_results <- bind_rows(rmse_results,
-                          data_frame(method="Regularized Movie + User effect model",  
-                                     RMSE = min(rmses)))
-rmse_results %>% knitr::kable()
-```
+| Model | RMSE |
+| ---------------------------------|-------------|
+| Naive Model | `naive_rmse` |
+| Movie effect Model | `rmse_2` |
+| Movie + User effect Model | `rmse_3` |
+| Regularized MOvie + User effect Model | `rmse_4` |
 
 ## Conclusion
 
